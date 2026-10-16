@@ -22,6 +22,20 @@ Sve je merila tačna rekonstrukcija (SHA-256 + svi bajtovi): 375/375 zapisa u E1
 
 Pretraga seed-a + XOR rezidual na nasumičnom ulazu: neto dobitak je **uvek negativan** (−5 do −13 bita, 33/33 pokušaja). Za kompresiju sa gubicima ista ideja radi (Šenonov slučajni kodni rečnik, kanalna simulacija). Detalji su u `results/` i u odeljku 8 izveštaja.
 
+## KFB v0: Kolmogorovljev filmski benchmark
+
+U `kfb/` je benchmark koji meri koliko kratak **tačan** opis filma enkoder pronalazi kada kratak opis zaista postoji. Referentna mašina je KFL VM, a K̄ je dužina oracle programa koji je proizveo film. Ima 120 instanci, 7 porodica i 18 enkodera plus LLM agente. Protokol vremenskog razdvajanja: enkoderi su zamrznuti pre nego što je napravljen seed. Detalji su u `kfb/README.md`, `IZVESTAJ.md` (odeljak 11) i `results/kfb/v0/`.
+
+| klasa enkodera (114 instanci) | L/K̄ (geom.) | L ≤ K̄ | L ≤ 1 KB |
+|---|---|---|---|
+| generički (lzma, CM, 6 lossless video kodeka …) | 216 | 0 | 9 |
+| family-aware inferencija | 1,00 | 90/90 | 81 |
+| generička pretraga programa | 429 | 7 | 7 |
+| LLM agenti (9 filmova) | 2,51 | 6 (od toga 4 **kraća od oracle-a**) | 7 |
+| oracle K̄ | 1 | — | 105 |
+
+Računska barijera je izmerena: PRNG sa 63-bitnim seed-om (K̄ = 54 B) i slučajni programi sa 9–15 čvorova (K̄ ≤ 42 B) ostaju na generičkim zapisima.
+
 ## Pokretanje
 
 Potrebni su Python ≥ 3.11 i NumPy ≥ 2.0 (za `np.bitwise_count`).
@@ -33,6 +47,9 @@ python3 experiments/e2_seed_search.py 3                         # pretraga seed-
 IGC_TMP=/tmp python3 experiments/e3_rule_and_exception.py 3     # film kao dinamički sistem
 python3 experiments/e4_lossy_seed.py                            # gde seed radi (sa gubicima)
 python3 experiments/e5_bounds.py                                # granice i budžeti
+python3 -m unittest discover -s tests -p "test_kfb*.py"           # KFB testovi
+python3 -m kfb.suite --master-seed-file results/kfb/v0/master_seed.bin --out SUITE --reps 3
+python3 -m kfb.run --suite SUITE --out OUT --jobs 3             # ~52 min na 4 jezgra
 ```
 
 ## Struktura

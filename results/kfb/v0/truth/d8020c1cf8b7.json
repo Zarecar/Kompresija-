@@ -1,0 +1,39 @@
+{
+ "iid": "d8020c1cf8b7",
+ "family": "shader",
+ "level": "rings_xor",
+ "tier": "std",
+ "rep": 0,
+ "N_bytes": 2718219,
+ "payload_bytes": 2718208,
+ "K_bar_bytes": 68,
+ "oracle_kind": "kfl",
+ "film_sha256": "ea874545daee4ea362adefcefe4075108a90d9e2d0a6a1b5486f95a893bfd5b5",
+ "model_id": "469c1a4a619ecb94b4e11384638d7b26bf001a767423831b4ed59c04fee4eadc",
+ "ideal_bits": 58.477416995570096,
+ "params": {
+  "template": "rings",
+  "cx": 85,
+  "cy": 77,
+  "f": 3,
+  "s": 3,
+  "v": 6,
+  "u": 4,
+  "gx": 4,
+  "gy": 1,
+  "tones": [
+   {
+    "A": 78,
+    "p": 84,
+    "q": 2
+   },
+   {
+    "A": 86,
+    "p": 113,
+    "q": 2
+   }
+  ],
+  "p": 0.0,
+  "exceptions": 0
+ }
+}

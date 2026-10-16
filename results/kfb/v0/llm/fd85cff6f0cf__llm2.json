@@ -1,0 +1,6 @@
+{
+ "time_s": 240,
+ "approach": "Analysis showed R=G=B, rows identical, column shift by one per frame; value = (x+t)^2 & 255. Program: VIDEO = SQ(X+T), no audio (silent).",
+ "hypothesis": "Grayscale quadratic ramp scrolling left: v(t,y,x,c) = (x+t)^2 mod 256; audio all zeros.",
+ "attempts": 1
+}

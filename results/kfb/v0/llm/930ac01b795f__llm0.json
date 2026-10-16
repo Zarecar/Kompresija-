@@ -1,0 +1,6 @@
+{
+ "time_s": 1500,
+ "approach": "Exact KFL program with STATE counter S=2T+24 (INIT 24, STEP S+2). VIDEO = BYTES[9 palette](ISIN(C) + WHERE(disk,2,BOOL(q))); disk = LT(SQ(X-3-TRI(S,25)) + SQ(Y-15+TRI(T,12)), 13); q = OR(DIV(X-TRI(NOT S,22),10), DIV(Y-TRI(S+18,22),10)); AUDIO = ISIN(9N)*ISIN(38).",
+ "hypothesis": "3-colour scene: background (177,53,246), a 10x10 square (28,218,101) bouncing with top-left (TRI(2T+25,22), TRI(2T+42,22)), and a radius^2<13 disk (0,68,64) drawn on top, bouncing with centre (3+TRI(2T+24,25), 3+|T-12|). Audio is a pure tone ISIN(9N)*102 (281.25 Hz). Tried rolled static square (ROLLX/ROLLY) variant (78 B), state counter + TRI symmetry (77 B).",
+ "attempts": 8
+}

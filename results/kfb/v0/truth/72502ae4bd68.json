@@ -1,0 +1,17 @@
+{
+ "iid": "72502ae4bd68",
+ "family": "prng",
+ "level": "seed24",
+ "tier": "mini",
+ "rep": 2,
+ "N_bytes": 89738,
+ "payload_bytes": 89728,
+ "K_bar_bytes": 52,
+ "oracle_kind": "kfl",
+ "film_sha256": "1cbe775b7e7df30a1668e5e3e2323d7591e24c8ce44efeb206d983e2dbfd0595",
+ "model_id": "469c1a4a619ecb94b4e11384638d7b26bf001a767423831b4ed59c04fee4eadc",
+ "ideal_bits": 24.0,
+ "params": {
+  "seed_bits": 24
+ }
+}

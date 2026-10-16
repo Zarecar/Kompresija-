@@ -17,7 +17,7 @@ Datum: 15. 10. 2026. Svi brojevi u odeljcima 7 i 8 su **merenja** iz ovog repozi
 | Perceptivno „veoma slično" za igrani film na 1 KB? | **Ne** | 1 KB / 2 h = **1,14 bit/s**, odnosno 2,7–8,2 bita po kadru |
 | Semantički na 1 KB? | **Grubo da**: ≈ 1 400–2 000 reči „treatment-a". Doslovni dijalog ne staje. | procena (E5) |
 | Da li je IGC novo? | Ne u ovom obliku. To je kombinacija dvodelnog MDL koda, analize-sintezom (CELP, 1985), Šenonovog slučajnog kodiranja i relativnog entropijskog kodiranja. | odeljak 2 |
-| Šta bi moglo biti originalno? | „Kolmogorovljev filmski benchmark": filmovi sa *poznatom* gornjom granicom K, šumom kao parametrom, kriptografskim negativnim kontrolama i kontrolom curenja kroz model. | odeljak 5; javni ekvivalent za video nisam našao |
+| Šta bi moglo biti originalno? | „Kolmogorovljev filmski benchmark": filmovi sa *poznatom* gornjom granicom K, šumom kao parametrom, kriptografskim negativnim kontrolama i kontrolom curenja kroz model. | **izgrađen i izmeren, odeljak 11**: generički kompresori 216× iznad K̄; family-aware inferencija = K̄; LLM agenti kraći od oracle-a na 4 porodice; računska barijera izmerena (prng seed64, randprog n15) |
 
 ### 0.1 Odgovori redom na 10 istraživačkih pitanja
 
@@ -452,3 +452,77 @@ Slučajni kodni rečnik iz zajedničkog seed-a nadmašuje skalarni kvantizator v
 - ako ne zatvori, granica je računska (Liu–Pass, Levin), a ne informaciona, i to treba objaviti uz brojeve.
 
 Konkretno, prvi zadatak: dodati 2 porodice (celobrojni LDS i sprajt-fizika), enkoder koji traži program u malom DSL-u (enumeracija + LLM predlozi) i meriti `gap`, tačnost i vreme na 3 nivoa šuma. Paralelno, za Cilj C, izmeriti bitove identifikacije za LLM-kodovane sinopsise od 256 B do 16 KB na 100 filmova (Faza 3, semantički deo). To je jeftino, a direktno meri koliko „filma" zaista staje u 1 KB.
+
+---
+
+## 11. KFB v0: Kolmogorovljev filmski benchmark (izgrađen i izmeren)
+
+Ovo je realizacija predloga iz odeljaka 5 i 10. Kod je u `kfb/` (dokumentacija `kfb/README.md`, jezik `kfb/KFL_SPEC.md`), a svi brojevi ispod su **merenja** iz `results/kfb/v0/`.
+
+### 11.1 Dizajn
+- **Mašina M** je KFL v1.1: deterministički VM za mali bajt-kod jezik (koordinate, celobrojna aritmetika, ISIN, HASH, stanje sa INIT/STEP, susedstva NB4/NB8, literali BITS/BYTES/WORDS, retki izuzeci). Uz to, kao osnovne linije, služe dekoderi igc i ffmpeg. MODEL_ID = SHA-256 svih fajlova mašine i verzije ffmpeg-a.
+- **Instanca** je film koji je proizveo oracle program porodice. **K̄ = dužina oracle zapisa**, proverena gornja granica `K_M(X)`, jer se film dobija upravo izvršavanjem tog programa.
+- **Porodice (7, 20 nivoa)**:
+  - ca: Life-like pravila, šum;
+  - sprites: fizika odbijanja, šum;
+  - shader: proceduralni obrasci, šum;
+  - diffusion: celobrojne dinamičke teksture, talas, šum;
+  - randprog: slučajni programi, „neviđena" porodica;
+  - prng: HASH sa seed-om od 16/24/63 bita;
+  - control: CSPRNG.
+- **Enkoderi (18)**:
+  - generički: raw, zlib, lzma, bz2, CM, mt_infer i 6 ffmpeg lossless kodeka (FFV1, H.264 RGB, VP9, AV1, APNG, HEVC);
+  - family-aware: ca_infer, sprites_infer, shader_infer, diffusion_infer, prng_infer;
+  - generička pretraga programa: enum_search;
+  - spoljni: LLM agenti u sandbox-u.
+- **Protokol**: zamrzavanje (commit `4c98c10`, zapisnik `PROTOCOL_freeze.json`, objavljen push-om), **tek posle toga** master seed (16. 10. 2026, 00:07 UTC). Instance su anonimizovane (`iid`). Svaki enkoder i dekoder radi u zasebnom procesu, uz 64 B smeća i poređenje SHA-256 i svih bajtova. Budžet je 20 s (mini) i 60 s (std).
+- **Kvalitet koda**: svaki modul je izgradio jedan agent, a adversarijalno ga je proverio drugi. Proverači su našli i ispravili 4 ozbiljna problema: sprites na 0,8 % instanci do 5,7× iznad K̄, rezervni zapis u enum_search, K̄ koji nije bio čvrst na 18 % randprog n15 instanci, i SIMD-zavisno dekodovanje u ffmpeg putanji. Revizija VM-a je našla DoS i greške u ugovoru o greškama, što je ispravljeno pre zamrzavanja. Fuzz: 50 000 nasumičnih i 25 000 ispravnih programa, bez ijedne greške.
+
+### 11.2 Glavni rezultati (120 instanci: 2 veličine × 20 nivoa × 3; 2 100 + 9 zapisa)
+Svi zapisi su **tačni ili odbijeni**: 0 netačnih, 0 nesamoograničavajućih, 0 sa pogrešnim MODEL_ID, 0 prekoračenja vremena. CSPRNG kontrola nije prekršena. Svih 114 nekontrolnih filmova se bit-identično regeneriše iz objavljenog seed-a.
+
+| klasa (114 instanci bez kontrole) | sa tačnim zapisom | L/K̄ (geom.) | L ≤ K̄ | L ≤ 1 KB |
+|---|---|---|---|---|
+| generički kompresori (najbolji od 12) | 114 | **216** | 0 | 9 |
+| KFL, family-aware inferencija | 90 | **1,00** | 90 | 81 |
+| KFL, generička pretraga (enum_search) | 20 | 429 | 7 | 7 |
+| LLM agenti (9 mini filmova) | 8 | 2,51 | 6 | 7 |
+| najbolji ukupno | 114 | 2,40 | 98 | 91 |
+| oracle (K̄) | — | 1 | — | **105** |
+
+Po generičkom kompresoru (geom. L/K̄): CM 99, lzma 252, bz2 333, zlib 402, APNG 645, AV1 672, FFV1 680, VP9 703, H.264 RGB 743, HEVC 793, raw 4 341. Na mini veličini (90 KB) najbolji generički je 84× iznad K̄, a na std (2,7 MB) 560×.
+
+### 11.3 Nalazi
+1. **Kratak opis postoji, ali ga generička kompresija ne vidi.** Na 105/114 filmova K̄ ≤ 1 KB, a najbolji generički kompresor je u proseku 216× duži. Primeri:
+   - shader three_terms (std): K̄ = 85 B, generički 1,13 MB (13 000×);
+   - shader rings_xor (std): 57 B naspram 1,13 MB (19 800×);
+   - diffusion smooth (std): 116 B naspram 173 KB;
+   - prng (std): 52 B naspram 2,7 MB, generički ne mogu ništa (50 000×).
+
+   Lossless video kodeci su na ovom sadržaju 2,5–3× gori od lzma.
+2. **Kada je porodica poznata, inferencija dostiže K̄ tačno** (90/90, L/K̄ = 1,00). Ovo važi samo za ručno pisane porodice. Rezultat to i treba da pokaže: to je slučaj „model zna generator".
+3. **Računska barijera je jasno izmerena.**
+   - prng sa 63-bitnim seed-om: K̄ = 54 B, ali ga niko ne pronalazi (0/6).
+   - randprog n9/n15: K̄ = 22–42 B, a generička pretraga nalazi samo 1/12, iako je opis kraći od 50 B; preostalih 11 ostaje na generičkim zapisima, 11–685× iznad K̄.
+
+   Mala K i mala K^t nisu isto (odeljak 3; Liu–Pass).
+4. **LLM kao enkoder radi drugačije i ponekad bolje.** Na 9 mini filmova, uz pristup samo VM-u i filmu, LLM agenti su:
+   - našli zapise **kraće od oracle-a** na 4 porodice (ca 68/111, sprites 77/86, diffusion 87/91, shader 41/43);
+   - dostigli K̄ na randprog n5 i n9; n9 enum_search nije rešio;
+   - na randprog n15 ostali na 1,76× K̄, što je i dalje 30× bolje od lzma.
+
+   Otkrivali su stvarnu strukturu, npr. formulu Conway pravila `EQ(OR(NB8(S), S), 3)` (`results/kfb/v0/llm/AUDIT.md`). PRNG nisu invertovali, ali je agent prekinut limitom sesije, pa to nije pošten test. K̄ je, dakle, gornja granica, a ne optimum: i oracle generatori nose suvišnost.
+5. **Granica 1 KB.** Najbolji ukupni zapis je ≤ 1 KB na 91/114 filmova od 90 KB i 2,7 MB, uključujući std filmove od 2,7 MB opisane sa 17–400 B. Ali: (a) svaki od tih filmova je nastao kratkim programom; (b) kada je kratak program kriptografski skriven (prng seed64) ili samo „težak za pronalaženje" (randprog n15), 1 KB postoji, a nije pronađen. Ovo empirijski potvrđuje H\* iz odeljka 5.
+
+### 11.4 Ograničenja i šta nije urađeno
+- LLM faza je mala (9 filmova, jedan model) i delimično prekinuta limitom sesije: 2 od 5 agenata nisu završila, a shader rings_xor nema LLM zapis. Izolacija je instrukcijska i proverena revizijom dnevnika, ali nije tehnički nametnuta.
+- Family-aware enkoderi su pisani zajedno sa porodicama, pa je L = K̄ očekivano. Vrednost KFB-a je u jazu generičkih metoda i u porodicama koje nijedan inferencer ne poznaje (randprog). U v1 treba dodati **zadržane porodice**, napisane posle zamrzavanja enkodera.
+- K̄ nije optimum (LLM ga je oborio na 4/7 porodica). Potrebna je metrika „najbolji poznati opis" koja se ažurira.
+- Rezultati vremenski ograničenih pretraga zavise od CPU-a (4 jezgra, 3 paralelna posla). Tokom merenja VM je dva puta restartovan, pa je pokretač postao nastavljiv. Mašina i enkoderi se nisu menjali.
+- Nezavisna adversarijalna kritika završenih rezultata (tri ugla: protokol, tvrdnje naspram podataka, osnovne linije) je pripremljena, ali nije pokrenuta zbog limita sesije.
+
+### 11.5 Sledeći korak (v1)
+1. Zadržane porodice i šum „kamere" (Gausov σ) kao parametar.
+2. Veći LLM eksperiment: više filmova, više modela, isti budžet tokena i ponavljanja.
+3. Kombinacija LLM predloga i enumerativne pretrage (LLM predlaže skelet, pretraga popunjava konstante).
+4. Javna tabela „najbolji poznati opis" po instanci.

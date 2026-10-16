@@ -1,0 +1,17 @@
+{
+ "iid": "32757279812f",
+ "family": "control",
+ "level": "csprng",
+ "tier": "std",
+ "rep": 2,
+ "N_bytes": 2718219,
+ "payload_bytes": 2718208,
+ "K_bar_bytes": 2718220,
+ "oracle_kind": "raw",
+ "film_sha256": "ac62f92f2da3e8c16e1c43fff36f5f57e597fc87fd198a16994e7618d57e4cd8",
+ "model_id": "469c1a4a619ecb94b4e11384638d7b26bf001a767423831b4ed59c04fee4eadc",
+ "ideal_bits": 21745664,
+ "params": {
+  "source": "secrets.token_bytes"
+ }
+}

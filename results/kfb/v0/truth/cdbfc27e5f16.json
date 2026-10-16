@@ -1,0 +1,22 @@
+{
+ "iid": "cdbfc27e5f16",
+ "family": "randprog",
+ "level": "n15",
+ "tier": "mini",
+ "rep": 0,
+ "N_bytes": 89738,
+ "payload_bytes": 89728,
+ "K_bar_bytes": 34,
+ "oracle_kind": "kfl",
+ "film_sha256": "e434d97784328902f1c63b0bf05133fc099e5c4f63f89b0ee27b8427f540fc57",
+ "model_id": "469c1a4a619ecb94b4e11384638d7b26bf001a767423831b4ed59c04fee4eadc",
+ "ideal_bits": 83.42275540776967,
+ "params": {
+  "nodes": 14,
+  "video_expr": "OR(TRI(T, Y), ISIN(SUB(ISIN(C), SQ(AND(11, XOR(26, Y))))))",
+  "video_expr_bytes": 14,
+  "audio_kind": "tone",
+  "audio_expr": "MUL(ISIN(SHR(MUL(N, 37), 2)), 56)",
+  "attempts": 1
+ }
+}

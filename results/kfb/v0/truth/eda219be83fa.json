@@ -1,0 +1,81 @@
+{
+ "iid": "eda219be83fa",
+ "family": "sprites",
+ "level": "k3_noise",
+ "tier": "std",
+ "rep": 2,
+ "N_bytes": 2718219,
+ "payload_bytes": 2718208,
+ "K_bar_bytes": 6397,
+ "oracle_kind": "kfl",
+ "film_sha256": "1e78951fa3e0daa7d34cd5caa92447346cee8b0af1b814035e9ef6b7b8735aa8",
+ "model_id": "469c1a4a619ecb94b4e11384638d7b26bf001a767423831b4ed59c04fee4eadc",
+ "ideal_bits": 50966.80779491413,
+ "params": {
+  "bg": {
+   "base": [
+    120,
+    178,
+    40
+   ],
+   "ax": [
+    0,
+    0,
+    0
+   ],
+   "ay": [
+    0,
+    0,
+    0
+   ]
+  },
+  "objects": [
+   {
+    "shape": "rect",
+    "w": 32,
+    "h": 24,
+    "x0": 100,
+    "vx": -4,
+    "y0": 37,
+    "vy": 1,
+    "color": [
+     216,
+     253,
+     3
+    ]
+   },
+   {
+    "shape": "circ",
+    "w": 19,
+    "h": 19,
+    "R2": 90,
+    "x0": 48,
+    "vx": 2,
+    "y0": 103,
+    "vy": 1,
+    "color": [
+     41,
+     131,
+     246
+    ]
+   },
+   {
+    "shape": "rect",
+    "w": 16,
+    "h": 23,
+    "x0": 95,
+    "vx": 1,
+    "y0": 120,
+    "vy": -1,
+    "color": [
+     148,
+     14,
+     118
+    ]
+   }
+  ],
+  "tone": null,
+  "exceptions": 2566,
+  "p": 0.001
+ }
+}

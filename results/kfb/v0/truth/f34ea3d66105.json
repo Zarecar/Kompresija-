@@ -1,0 +1,17 @@
+{
+ "iid": "f34ea3d66105",
+ "family": "prng",
+ "level": "seed16",
+ "tier": "std",
+ "rep": 0,
+ "N_bytes": 2718219,
+ "payload_bytes": 2718208,
+ "K_bar_bytes": 52,
+ "oracle_kind": "kfl",
+ "film_sha256": "a24a6a7bc6578b1c58e7a8eea963c9616265a26e1ae3784d4acfad7f6b38e407",
+ "model_id": "469c1a4a619ecb94b4e11384638d7b26bf001a767423831b4ed59c04fee4eadc",
+ "ideal_bits": 16.0,
+ "params": {
+  "seed_bits": 16
+ }
+}

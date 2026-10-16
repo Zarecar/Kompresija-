@@ -1,0 +1,70 @@
+{
+ "iid": "61242c155a76",
+ "family": "sprites",
+ "level": "k2",
+ "tier": "mini",
+ "rep": 2,
+ "N_bytes": 89738,
+ "payload_bytes": 89728,
+ "K_bar_bytes": 84,
+ "oracle_kind": "kfl",
+ "film_sha256": "fb935178ac1049e3663f64bffdb0cd0c665e52591810fc90a07e973a7657fde3",
+ "model_id": "469c1a4a619ecb94b4e11384638d7b26bf001a767423831b4ed59c04fee4eadc",
+ "ideal_bits": 126.88808456128513,
+ "params": {
+  "bg": {
+   "base": [
+    85,
+    147,
+    11
+   ],
+   "ax": [
+    0,
+    0,
+    0
+   ],
+   "ay": [
+    0,
+    0,
+    0
+   ]
+  },
+  "objects": [
+   {
+    "shape": "rect",
+    "w": 10,
+    "h": 6,
+    "x0": 18,
+    "vx": -1,
+    "y0": 12,
+    "vy": 1,
+    "color": [
+     160,
+     243,
+     241
+    ]
+   },
+   {
+    "shape": "rect",
+    "w": 9,
+    "h": 7,
+    "x0": 5,
+    "vx": -2,
+    "y0": 31,
+    "vy": -2,
+    "color": [
+     176,
+     239,
+     97
+    ]
+   }
+  ],
+  "tone": [
+   65,
+   3,
+   83
+  ],
+  "exceptions": 0,
+  "p": 0.0
+ }
+}

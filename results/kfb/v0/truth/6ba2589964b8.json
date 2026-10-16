@@ -1,0 +1,22 @@
+{
+ "iid": "6ba2589964b8",
+ "family": "ca",
+ "level": "conway_p1e-3",
+ "tier": "std",
+ "rep": 0,
+ "N_bytes": 2718219,
+ "payload_bytes": 2718208,
+ "K_bar_bytes": 1460,
+ "oracle_kind": "kfl",
+ "film_sha256": "b72f7ab1da56cb46fd10227b8c4e6a7cd4ab7e359fcaee47d4691089bb8b057d",
+ "model_id": "469c1a4a619ecb94b4e11384638d7b26bf001a767423831b4ed59c04fee4eadc",
+ "ideal_bits": 10737.501393620327,
+ "params": {
+  "rule": 6152,
+  "s": 32,
+  "y0": 32,
+  "x0": 62,
+  "exceptions": 848,
+  "p": 0.001
+ }
+}

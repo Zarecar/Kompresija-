@@ -1,0 +1,22 @@
+{
+ "iid": "0aded51106e5",
+ "family": "randprog",
+ "level": "n5",
+ "tier": "std",
+ "rep": 0,
+ "N_bytes": 2718219,
+ "payload_bytes": 2718208,
+ "K_bar_bytes": 17,
+ "oracle_kind": "kfl",
+ "film_sha256": "d047e064d95f8e0dabb53d85c018722ca91045d24a17e64ef42853b46a26e147",
+ "model_id": "469c1a4a619ecb94b4e11384638d7b26bf001a767423831b4ed59c04fee4eadc",
+ "ideal_bits": 12.079403153245357,
+ "params": {
+  "nodes": 4,
+  "video_expr": "XOR(SQ(T), X)",
+  "video_expr_bytes": 4,
+  "audio_kind": "silence",
+  "audio_expr": null,
+  "attempts": 4
+ }
+}

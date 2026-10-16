@@ -1,0 +1,57 @@
+{
+ "iid": "dbe5d7527eb4",
+ "family": "shader",
+ "level": "three_terms_noise",
+ "tier": "mini",
+ "rep": 1,
+ "N_bytes": 89738,
+ "payload_bytes": 89728,
+ "K_bar_bytes": 267,
+ "oracle_kind": "kfl",
+ "film_sha256": "621d19bb7a04977d41d43ccc6d5f725d4d6ef8df5ead6d56b8426e7070e03a75",
+ "model_id": "469c1a4a619ecb94b4e11384638d7b26bf001a767423831b4ed59c04fee4eadc",
+ "ideal_bits": 1556.3103310693944,
+ "params": {
+  "template": "sum",
+  "terms": [
+   {
+    "fx": 5,
+    "fy": -10,
+    "ft": 6,
+    "k": -11,
+    "ph": 166,
+    "a": 2
+   },
+   {
+    "fx": -11,
+    "fy": -12,
+    "ft": 0,
+    "k": -27,
+    "ph": 159,
+    "a": 1
+   },
+   {
+    "fx": -9,
+    "fy": 12,
+    "ft": -11,
+    "k": 13,
+    "ph": 93,
+    "a": 1
+   }
+  ],
+  "bias": [
+   193,
+   206,
+   159
+  ],
+  "tones": [
+   {
+    "A": 135,
+    "p": 50,
+    "q": 2
+   }
+  ],
+  "p": 0.001,
+  "exceptions": 74
+ }
+}

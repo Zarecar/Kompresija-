@@ -1,0 +1,59 @@
+{
+ "iid": "f03aec04b9fd",
+ "family": "diffusion",
+ "level": "wave",
+ "tier": "std",
+ "rep": 1,
+ "N_bytes": 2718219,
+ "payload_bytes": 2718208,
+ "K_bar_bytes": 151,
+ "oracle_kind": "kfl",
+ "film_sha256": "b31e2fe767dc2c201d2cabba4f2706762d5dde980d5dd2915e205faf8243f950",
+ "model_id": "469c1a4a619ecb94b4e11384638d7b26bf001a767423831b4ed59c04fee4eadc",
+ "ideal_bits": 219.9416167892786,
+ "params": {
+  "kind": "wave",
+  "rule": [
+   38,
+   6,
+   31,
+   5
+  ],
+  "src": {
+   "x0": 31,
+   "y0": 85,
+   "vx": 1,
+   "vy": 0,
+   "w": 27,
+   "amp": 15
+  },
+  "init": {
+   "type": "patch",
+   "y0": 43,
+   "x0": 14,
+   "h": 5,
+   "w": 5,
+   "data": "01170209150d010a0d1004061316100f170a160515120d0a04"
+  },
+  "palette": {
+   "m": [
+    -1,
+    -2,
+    -2
+   ],
+   "o": [
+    13,
+    64,
+    179
+   ]
+  },
+  "audio": {
+   "k": 28,
+   "R": 47,
+   "base": 34,
+   "amp": 127
+  },
+  "exceptions": 0,
+  "p": 0.0
+ }
+}

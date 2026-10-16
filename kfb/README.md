@@ -40,3 +40,6 @@ python3 -m unittest discover -s tests -p "test_kfb*.py"
 
 ## Dodavanje porodice ili enkodera
 Napravite modul u `families/` ili `encoders/` po interfejsu opisanom u `families/__init__.py` i `encoders/__init__.py`. Registri ih otkrivaju automatski. Porodica sme da koristi samo dati `rng`. Enkoder ne sme da čita ground truth. `family_aware=True` znači da enkoder sme da pretpostavi konvencije svoje porodice, ali ne i parametre instance.
+
+## Rezultati v0
+Pun izveštaj je u `results/kfb/v0/summary.md` (i `IZVESTAJ.md`, odeljak 11). Sirovi redovi su u `rows.json`, ground truth i oracle zapisi u `truth/`, a LLM zapisi i revizija izolacije u `llm/`. Svih 114 nekontrolnih filmova se bit-identično regeneriše iz `master_seed.bin`.

@@ -1,0 +1,22 @@
+{
+ "iid": "498a018149bd",
+ "family": "ca",
+ "level": "random_rule_p1e-4",
+ "tier": "mini",
+ "rep": 0,
+ "N_bytes": 89738,
+ "payload_bytes": 89728,
+ "K_bar_bytes": 117,
+ "oracle_kind": "kfl",
+ "film_sha256": "78caa7a694ecd1b2e15250a42182e57bebe354772da15ac29412dbf6b5ca0f89",
+ "model_id": "469c1a4a619ecb94b4e11384638d7b26bf001a767423831b4ed59c04fee4eadc",
+ "ideal_bits": 116.6855733662277,
+ "params": {
+  "rule": 25002,
+  "s": 10,
+  "y0": 4,
+  "x0": 18,
+  "exceptions": 1,
+  "p": 0.0001
+ }
+}

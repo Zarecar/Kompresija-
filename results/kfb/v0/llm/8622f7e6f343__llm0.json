@@ -1,0 +1,6 @@
+{
+ "time_s": 700,
+ "approach": "Exact KFL program, no exceptions. VIDEO = XOR(Y, MIN(ADD(ISIN(T),20),32)) (gray, all channels equal; ISIN(T)=3T for T<=4 replaces MUL(T,3)); AUDIO = MUL(SUB(AND(MUL(N,7),15),8),1012).",
+ "hypothesis": "Gray rows: frame t pixel = Y xor min(3t+20,32) (key saturates at 32 from t=4); audio is a 16-level stepped sequence ((7N mod 16)-8)*1012 with period 16 samples. Brute-force search (<=6 nodes) found no shorter key; factor search found no shorter audio.",
+ "attempts": 4
+}

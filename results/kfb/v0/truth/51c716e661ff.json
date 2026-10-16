@@ -1,0 +1,59 @@
+{
+ "iid": "51c716e661ff",
+ "family": "diffusion",
+ "level": "smooth",
+ "tier": "mini",
+ "rep": 2,
+ "N_bytes": 89738,
+ "payload_bytes": 89728,
+ "K_bar_bytes": 139,
+ "oracle_kind": "kfl",
+ "film_sha256": "be5603b113ccf04100e4a50cf120f11cb33b37273178e8ffcc4b7699474e94ae",
+ "model_id": "469c1a4a619ecb94b4e11384638d7b26bf001a767423831b4ed59c04fee4eadc",
+ "ideal_bits": 357.66851808234657,
+ "params": {
+  "kind": "smooth",
+  "rule": [
+   12,
+   5,
+   0,
+   5
+  ],
+  "src": {
+   "x0": 52,
+   "y0": 32,
+   "vx": 2,
+   "vy": -2,
+   "R2": 14,
+   "amp": 790
+  },
+  "init": {
+   "type": "patch",
+   "y0": 1,
+   "x0": 15,
+   "h": 8,
+   "w": 4,
+   "data": "00bccca05cce0b87d0e01b4b96bdb1b45cb46a386647a6093e575ce3113e18ad"
+  },
+  "palette": {
+   "m": [
+    3,
+    -3,
+    1
+   ],
+   "o": [
+    164,
+    149,
+    243
+   ]
+  },
+  "audio": {
+   "k": 6,
+   "R": 43,
+   "base": 64,
+   "amp": 44
+  },
+  "exceptions": 0,
+  "p": 0.0
+ }
+}

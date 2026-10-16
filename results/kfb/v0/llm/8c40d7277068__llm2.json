@@ -1,0 +1,6 @@
+{
+ "time_s": 1650,
+ "approach": "State machine. INIT S0 = HASH((Y*32+X) XOR 457619) >> 55 (found by seed search after recovering S0 = (200-R0) mod 256). STEP S' = ((NB8(S)+NB4(S)+4S + 569*[(X+T-25)^2+(Y-8)^2 <= 10]) >> 4) mod SQ(16). VIDEO = S*LUT[-1,2,1](C) + LUT[-56,-26,-28](C). AUDIO = ISIN((N*((SUMS>>8)%58 + 50))>>3) * ISIN(23) (=68). No exceptions.",
+ "hypothesis": "Heat diffusion (3x3 binomial kernel, floor, state wrapped mod 256) of a hashed random soup, with a disc-shaped heat source (radius^2<=10, +569/16 per step) moving left one column per frame along row 8; colors are a linear map of the state per channel; audio is a sine whose per-frame frequency is 50+((sum of state)>>8)%58 in 1/8 phase units per sample, amplitude 68.",
+ "attempts": 14
+}
