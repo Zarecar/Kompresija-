@@ -1,4 +1,6 @@
-# KFL v1: Kolmogorov Film Language (specifikacija)
+# KFL v1.1: Kolmogorov Film Language (specifikacija)
+
+Izmene u odnosu na v1 (pre prvog zvaničnog skupa): vrednosti izuzetaka vmode 4 i 5 i vmode 3 kao uint64, ograničenja rada i memorije (MAX_WORK, MAX_DIM, MAX_RATE), ograničeni varint-ovi, javni `evaluate`, preciziranja ispod.
 
 KFL je referentna mašina **M** benchmarka KFB. Program je niz bajtova koji deterministički proizvodi ceo film. **Mera je dužina kompletnog zapisa u bajtovima** (zapis = 1 B metode + metapodaci + program). Interpreter je u `kfb/kfl.py` i on je normativan: ako se ovaj dokument i kod razlikuju, važi kod (i to je bag u dokumentu).
 
@@ -12,7 +14,7 @@ KFL je referentna mašina **M** benchmarka KFB. Program je niz bajtova koji dete
 ```
 [0x10][8 varint-ova: W H T fps audio_rate audio_channels sample_bytes NS][program]
 ```
-Varint je LEB128 (7 bita po bajtu, najniži prvo). Zapis je samoograničavajući: dekoder ne koristi dužinu fajla.
+Varint je LEB128 (7 bita po bajtu, najniži prvo) i ima **najviše 10 bajtova**; duži se odbacuje. Zapis je samoograničavajući: dekoder ne koristi dužinu fajla.
 Ostale metode (`0x00–0x08` igc, `0x20–0x2F` ffmpeg) su osnovne linije i nisu KFL.
 
 ## 3. Program
@@ -52,9 +54,9 @@ Zigzag: `0→0, −1→1, 1→2, −2→3, …`
 | 0x10 | NEG | −a |
 | 0x11 | ABS | \|a\| |
 | 0x12 | NOT | ~a (bitski) |
-| 0x13 | ISIN | `ISIN_LUT[a & 255]`, ≈ round(127·sin(2πa/256)), opseg −127..127 |
+| 0x13 | ISIN | `ISIN_LUT[a & 255]`, ≈ round(127·sin(2πa/256)), opseg −127..127. Tabela tačno zadovoljava ISIN(−a) = −ISIN(a), ISIN(a+128) = −ISIN(a) i ISIN(128−a) = ISIN(a). |
 | 0x14 | HASH | splitmix64 završnica nad (a + 0x9E3779B97F4A7C15), rezultat ≫ 1 (nenegativan) |
-| 0x15 | ISQRT | ⌊√max(a,0)⌋, ulaz se seče na 2⁵² |
+| 0x15 | ISQRT | ⌊√max(a,0)⌋, ulaz se seče na 2⁵². Računa se IEEE-754 sqrt (tačno zaokružen) uz celobrojnu korekciju ±1, pa je rezultat egzaktan. |
 | 0x16 | BOOL | a ≠ 0 → 1, inače 0 |
 | 0x17 | SQ | a·a |
 | 0x18 | NB8 | zbir 8 suseda na torusu (prostorne ose) |
@@ -76,13 +78,13 @@ Zigzag: `0→0, −1→1, 1→2, −2→3, …`
 ### Ternarni (arnost 3)
 | bajt | ime | semantika |
 |---|---|---|
-| 0x38 | WHERE | `c ? a : b` (c ≠ 0) |
+| 0x38 | WHERE | `WHERE(c, a, b) = (c ≠ 0) ? a : b`; uslov je PRVI argument |
 | 0x39 | CLIP | `min(max(a, lo), hi)` |
 
 ### Literali i tabele (arnost 1; podaci ugrađeni posle opkoda, pre argumenta)
 | bajt | ime | kodiranje | vrednost |
 |---|---|---|---|
-| 0x3A | LUT | varint L, L zigzag varint-ova | `tab[a mod L]` |
+| 0x3A | LUT | varint L, L zigzag varint-ova (svaki u opsegu int64) | `tab[a mod L]` |
 | 0x3B | BITS | varint nbits, ⌈nbits/8⌉ bajtova (MSB prvi) | `bit[a]` za 0 ≤ a < nbits, inače 0 |
 | 0x3C | BYTES | varint L, L bajtova | `byte[a mod L]` |
 | 0x3D | WORDS | varint L, 2L bajtova (uint16 LE) | `word[a mod L]` |
@@ -99,24 +101,32 @@ U VIDEO sekciji `Y` ima oblik (H,1,1), `X` (1,W,1), `C` (1,1,3), a `S` (H,W,1). 
 
 ## 6. Izuzeci (Seed-and-Correct unutar jezika)
 ```
-varint K, [ako K>0: 1 B Rice parametar k, Rice-kodovani razmaci, poravnanje na bajt, 1 B vmode, vrednosti]
+varint K, [ako K>0: 1 B Rice parametar k (0..62), Rice-kodovani razmaci, poravnanje na bajt, 1 B vmode, vrednosti]
 ```
 - Pozicije su strogo rastuće. Razmak `g_i = pos_i − pos_{i−1} − 1` (sa `pos_{−1} = −1`) kodira se kao Rice(k): `g≫k` jedinica, jedna nula, pa k nižih bitova.
-- vmode: `0` znači da su sve XOR vrednosti 1 (bez podataka); `1` daje uint8 po izuzetku; `2` daje uint16 LE; `3` daje varint.
+- vmode: `0` znači da su sve XOR vrednosti 1 (bez podataka); `1` daje uint8 po izuzetku; `2` daje uint16 LE; `3` daje varint kao uint64 mod 2⁶⁴, tumačen kao int64 (pa je izraziv i XOR bita znaka); `4` daje zigzag varint (označeni int64); `5` daje 4-bitne vrednosti 0..15, dve po bajtu (viši nibl prvi). Enkoder iz `kfl.py` bira najkraći primenljiv način.
+- Svaki razmak mora biti manji od granice pozicija, inače je zapis neispravan.
 - **Stanje**: pozicije nad `(T−1)·H·W`. Pozicija `p` pogađa frejm `1 + p // (H·W)` i ćeliju `p mod (H·W)`, na koju se primenjuje `S ^= v`.
 - **Video**: pozicije nad `T·H·W·3` bajtova videa: `bajt ^= v`.
 - **Zvuk**: pozicije nad NS uzoraka: `uint16 ^= v`.
 
+Javni evaluator za alate je `kfl.evaluate(node, env, shape)` (ne proverava sekciju).
+
 ## 7. Ograničenja mašine
-W·H ≤ 512², T ≤ 2048, NS ≤ 2²⁴, ≤ 8192 čvorova ukupno, dubina ≤ 256, LUT ≤ 65 536 elemenata, literal ≤ 2²⁴. Konstante su int64.
+- W, H ≤ 2¹⁶ pojedinačno i W·H ≤ 512²; T ≤ 2048; T·H·W·3 ≤ 2²⁸ bajtova; NS ≤ 2²⁴; fps, audio_rate < 2³¹.
+- ≤ 8192 čvorova ukupno; dubina: koren je na dubini 0, najveća dozvoljena je 255 (256 nivoa); LUT ≤ 65 536 elemenata; literal ≤ 2²⁴. Konstante i elementi LUT-a su int64.
+- **Rad**: pre izvršenja se računa `work_estimate` = čvorovi(INIT)·HW + čvorovi(STEP)·HW·(T−1) + dinamički čvorovi(VIDEO)·3·HW·T + statički čvorovi(VIDEO)·3·HW + čvorovi(AUDIO)·NS (NB8/NB4 se broje kao 9). Program sa `work_estimate > 2³⁶` je neispravan.
+- **Memorija**: stanje se ne čuva za sve frejmove (O(H·W)); keš statičkih podizraza je ograničen na 2²⁸ bajtova (rezultat ne zavisi od keša).
+- Granični slučajevi: T = 0 daje prazan video, a SUMS je tada 0. audio_rate = 0 daje T = 0 u AUDIO sekciji. `N·fps` se računa u int64.
+- Svaki neispravan zapis daje grešku (ValueError u `kfb.record.decode`); dekoder nikada ne vraća pogrešan film.
 
 ## 8. Primeri (Python graditelj iz `kfb.kfl`)
 ```python
 from kfb import kfl, record
 from kfb.kfl import T, Y, X, C, N, S, SUMS, op, lut, bits, const
 
-# gradijent koji se pomera, sa tonom od 440 Hz pri 8 kHz (≈ 14 B programa)
-p = kfl.Program(video=(X * 4 + T * 3 + C * 85), audio=op("ISIN", (N * 14) >> 3) * 200)
+# gradijent koji se pomera, sa tonom od ≈ 440 Hz pri 8 kHz: 8000·225/(16·256) ≈ 439,5 Hz
+p = kfl.Program(video=(X * 4 + T * 3 + C * 85), audio=op("ISIN", (N * 225) >> 4) * 200)
 
 # Conway na torusu sa supom
 p2 = kfl.Program(init=op("WHERE", (Y < 8) & (X < 8), bits([1,0,1,1]*16, Y * 8 + X), 0),

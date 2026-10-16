@@ -189,6 +189,62 @@ class TestFormat(unittest.TestCase):
                 pass
 
 
+class TestRobustness(unittest.TestCase):
+    """KFL v1.1: ugovor o greškama, granice rada/memorije, novi načini vrednosti izuzetaka."""
+
+    def test_value_modes_roundtrip(self):
+        for vals in ([3, 15, 0, 7, 1], [200, 7, 9], [70000, 3], [-5, 1 << 40, 3],
+                     [-(1 << 63), (1 << 63) - 1]):
+            e = kfl.Exceptions(np.arange(len(vals)) * 3 + 1, np.array(vals, dtype=np.int64))
+            b = e.to_bytes() + b"\x00junk"
+            d, pos = kfl.Exceptions.from_bytes(b, 0, 10 ** 6)
+            self.assertEqual(pos, len(e.to_bytes()))
+            self.assertEqual(d.values.tolist(), vals)
+        nib = kfl.Exceptions(np.arange(10), np.array([1, 2] * 5)).to_bytes()
+        byt = kfl.Exceptions(np.arange(10), np.array([1, 200] * 5)).to_bytes()
+        self.assertLess(len(nib), len(byt))          # vmode 5 je kraći
+
+    def test_malformed_raise_valueerror_only(self):
+        good = record.encode_kfl(META, kfl.Program(init=const(0), step=S, video=S,
+                                                   exc_state=kfl.Exceptions(np.array([1, 9]), np.array([3, 4]))))
+        for cut in range(1, len(good)):
+            try:
+                record.decode(good[:cut])
+            except ValueError:
+                pass
+        with self.assertRaises(ValueError):
+            record.decode(bytes([0x10]) + META.to_bytes() + bytes([4 | 1, 0x80, 0x06, 0x06, 2, 63, 0xff]))
+        with self.assertRaises(ValueError):        # predug varint u metapodacima
+            record.decode(bytes([0x10]) + b"\xff" * 40)
+        with self.assertRaises(ValueError):        # predug varint u konstanti
+            record.decode(bytes([0x10]) + META.to_bytes() + bytes([0, 0x00]) + b"\xff" * 12)
+
+    def test_meta_bounds_and_zero_frames(self):
+        from igc.film import Meta
+        with self.assertRaises(ValueError):
+            kfl.check_meta(Meta(0, 1 << 40, 1, 24, 8000, 1, 2, 0))
+        with self.assertRaises(ValueError):
+            kfl.check_meta(Meta(4, 4, 2, 1 << 40, 8000, 1, 2, 10))
+        m0 = Meta(4, 4, 0, 24, 8000, 1, 2, 50)       # T = 0 sa stanjem i zvukom (ranije AttributeError)
+        pl = kfl.run(kfl.Program(init=const(1), step=S, video=S, audio=SUMS + N), m0)
+        self.assertEqual(len(pl), 100)
+
+    def test_work_bound(self):
+        from igc.film import Meta
+        big = Meta(512, 512, 2048 // 8, 24, 8000, 1, 2, 0)
+        e = X
+        for i in range(400):
+            e = e + T
+        with self.assertRaises(ValueError):
+            kfl.run(kfl.Program(video=e), big)
+        # programi veličine benchmark tier-a su daleko ispod granice
+        from kfb.suite import TIERS
+        self.assertLess(kfl.work_estimate(kfl.Program(video=e), TIERS["std"]), kfl.MAX_WORK)
+
+    def test_evaluate_public(self):
+        self.assertEqual(kfl.evaluate(X * 2 + 1, {"X": np.arange(3)}).tolist(), [1, 3, 5])
+
+
 class TestSuite(unittest.TestCase):
     def test_make_and_oracles(self):
         from kfb import suite

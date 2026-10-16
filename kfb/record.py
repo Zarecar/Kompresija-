@@ -26,11 +26,26 @@ MODEL_FILES = [PKG / "kfl.py", PKG / "record.py", PKG / "ffcodec.py"]
 
 
 def ffmpeg_version() -> str:
+    """Pun izlaz `ffmpeg -version` (verzije biblioteka i konfiguracija ulaze u MODEL_ID)."""
     try:
         out = subprocess.run(["ffmpeg", "-version"], capture_output=True, text=True, timeout=30).stdout
-        return out.splitlines()[0] if out else "ffmpeg: nema"
+        return out.strip() if out else "ffmpeg: nema"
     except (OSError, subprocess.SubprocessError):
         return "ffmpeg: nema"
+
+
+def _scan_meta(rec: bytes, pos: int) -> None:
+    """Proverava da 8 varint-ova metapodataka imaju najviše 10 bajtova (bez kvadratnog parsiranja)."""
+    for _ in range(8):
+        for i in range(10):
+            if pos >= len(rec):
+                raise ValueError("skraćeni metapodaci")
+            b = rec[pos]
+            pos += 1
+            if not b & 0x80:
+                break
+        else:
+            raise ValueError("predug varint u metapodacima")
 
 
 def model_id() -> str:
@@ -52,12 +67,17 @@ def decode(rec: bytes) -> tuple[Meta, bytes, int]:
         raise ValueError("prazan zapis")
     m = rec[0]
     if m == KFL_METHOD:
-        meta, pos = Meta.from_bytes(rec, 1)
-        prog, pos = kfl.Program.from_bytes(rec, pos, meta)
-        payload = kfl.run(prog, meta)
+        _scan_meta(rec, 1)
+        try:
+            meta, pos = Meta.from_bytes(rec, 1)
+            prog, pos = kfl.Program.from_bytes(rec, pos, meta)
+            payload = kfl.run(prog, meta)
+        except (IndexError, OverflowError, AttributeError, TypeError, MemoryError, RecursionError) as e:
+            raise ValueError(f"KFL: neispravan zapis ({type(e).__name__})") from None
         return meta, payload, pos
     if 0x20 <= m <= 0x2F:
         return ffcodec.decode(rec)
     if m in igc_codec.NAMES and igc_codec.NAMES[m] != "leaky":
+        _scan_meta(rec, 1)
         return igc_codec.decode(rec)
     raise ValueError(f"nepoznata ili zabranjena metoda 0x{m:02x}")

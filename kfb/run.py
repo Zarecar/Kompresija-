@@ -14,6 +14,7 @@ import concurrent.futures as cf
 import hashlib
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -70,6 +71,7 @@ def job(iid: str, tier: str, film_path: Path, enc_name: str, budget: float, tmp:
         row.update(size=None, exact=False, note=e.get("error", "nije primenljiv"))
     else:
         row["size"] = e["size"]
+        row["method"] = rec.read_bytes()[0]
         row.update(verify(rec, film, work))
     for p in work.iterdir():
         p.unlink()
@@ -87,6 +89,7 @@ def main() -> None:
     ap.add_argument("--budget-std", type=float, default=60)
     ap.add_argument("--extra-records", default="")
     ap.add_argument("--only-extra", action="store_true")
+    ap.add_argument("--merge", default="", help="prethodni rows.json čiji se redovi pridružuju")
     a = ap.parse_args()
     suite = Path(a.suite)
     out = Path(a.out)
@@ -129,14 +132,22 @@ def main() -> None:
             r = {"iid": iid, "tier": tiers[iid], "encoder": f"ext:{name}", "budget_s": None,
                  "enc_ok": True, "enc_time_s": meta.get("time_s"), "enc_rss_mb": None,
                  "size": rp.stat().st_size, "family_aware": False, "external": True,
-                 "external_meta": meta}
+                 "external_meta": meta, "method": rp.read_bytes()[:1][0] if rp.stat().st_size else None}
             r.update(verify(rp, film, work))
             r["model_valid"] = r.get("model_id_at_decode") == mid
             work.rmdir()
             rows.append(r)
             print(f"[ext] {iid} {name} size={r['size']} exact={r['exact']}", flush=True)
+    wall = time.time() - t0
+    if a.merge:
+        prev = json.loads(Path(a.merge).read_text())
+        if prev["model_id_preregistered"] != mid:
+            raise SystemExit("MODEL_ID se razlikuje od prethodnog pokretanja — spajanje odbijeno")
+        rows = prev["rows"] + rows
+        wall += prev.get("wall_time_s", 0)
     res = {"model_id_preregistered": mid, "suite_model_id": man.get("model_id"), "rows": rows,
-           "wall_time_s": time.time() - t0, "budgets": budgets, "jobs": a.jobs}
+           "wall_time_s": wall, "budgets": budgets, "jobs": a.jobs}
+    shutil.rmtree(tmp, ignore_errors=True)
     (out / "rows.json").write_text(json.dumps(res, indent=1))
     from kfb import report
     (out / "summary.md").write_text(report.summarize(res, suite / "truth"))
