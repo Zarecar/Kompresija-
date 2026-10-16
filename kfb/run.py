@@ -3,6 +3,9 @@
     python3 -m kfb.run --suite DIR --out results/kfb [--encoders all] [--jobs 3]
                        [--budget-mini 20] [--budget-std 60] [--extra-records DIR]
 
+Nastavljivo: svaki završen posao se odmah dopisuje u OUT/rows.jsonl; pri ponovnom
+pokretanju se već urađeni parovi (iid, enkoder) sa istim MODEL_ID preskaču.
+
 --extra-records DIR: već gotovi zapisi spoljnih enkodera (npr. LLM agenata),
     imenovani <iid>__<ime>.rec (opciono <iid>__<ime>.json sa {"time_s":..}).
     Verifikuju se ISTIM nezavisnim dekoderom.
@@ -100,6 +103,19 @@ def main() -> None:
     names = list(encs) if a.encoders == "all" else a.encoders.split(",")
     budgets = {"mini": a.budget_mini, "std": a.budget_std}
     tmp = Path(tempfile.mkdtemp(prefix="kfb_", dir=os.environ.get("IGC_TMP")))
+    jl = out / "rows.jsonl"
+    prev_rows, done = [], set()
+    if jl.exists():
+        for line in jl.read_text().splitlines():
+            if not line.strip():
+                continue
+            r = json.loads(line)
+            if r.get("model_id_run") == mid:
+                prev_rows.append(r)
+                done.add((r["iid"], r["encoder"]))
+        print(f"nastavak: {len(prev_rows)} već urađenih poslova", flush=True)
+    wall_file = out / "wall_s.txt"
+    wall_prev = float(wall_file.read_text()) if wall_file.exists() and prev_rows else 0.0
     jobs = []
     if not a.only_extra:
         for inst in man["instances"]:
@@ -107,8 +123,10 @@ def main() -> None:
                 if inst["tier"] in encs[n].tiers:
                     jobs.append((inst["iid"], inst["tier"], suite / "films" / f"{inst['iid']}.film", n,
                                  budgets[inst["tier"]]))
+    jobs = [j for j in jobs if (j[0], j[3]) not in done]
     t0 = time.time()
-    rows = []
+    rows = list(prev_rows)
+    jf = open(jl, "a")
     with cf.ThreadPoolExecutor(max_workers=a.jobs) as ex:
         futs = {ex.submit(job, *j, tmp): j for j in jobs}
         for i, f in enumerate(cf.as_completed(futs)):
@@ -116,9 +134,14 @@ def main() -> None:
             r["model_valid"] = r.get("model_id_at_decode") in (None, mid) if not r.get("dec_ok") else \
                 r.get("model_id_at_decode") == mid
             r["family_aware"] = encs[r["encoder"]].family_aware
+            r["model_id_run"] = mid
             rows.append(r)
+            jf.write(json.dumps(r) + "\n")
+            jf.flush()
+            wall_file.write_text(str(wall_prev + time.time() - t0))
             print(f"[{time.time()-t0:7.0f}s {i+1}/{len(jobs)}] {r['iid']} {r['tier']:4s} {r['encoder']:14s} "
                   f"size={r.get('size')} exact={r.get('exact')}", flush=True)
+    jf.close()
     if a.extra_records:
         tiers = {i["iid"]: i["tier"] for i in man["instances"]}
         for rp in sorted(Path(a.extra_records).glob("*.rec")):
@@ -138,7 +161,7 @@ def main() -> None:
             work.rmdir()
             rows.append(r)
             print(f"[ext] {iid} {name} size={r['size']} exact={r['exact']}", flush=True)
-    wall = time.time() - t0
+    wall = wall_prev + time.time() - t0
     if a.merge:
         prev = json.loads(Path(a.merge).read_text())
         if prev["model_id_preregistered"] != mid:
