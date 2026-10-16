@@ -1,0 +1,8 @@
+{
+ "model_id": "469c1a4a619ecb94b4e11384638d7b26bf001a767423831b4ed59c04fee4eadc",
+ "encoders_sha256": "e85a1d8afd59c46c5829efa90a4ac42f24326266de20973880fade7c9dc66511",
+ "families_sha256": "086a45ae3d9559aab05a066f6845b42d282d6afe52ee10a72c2857fb1d1aeb8c",
+ "git_commit": "4c98c10764f6948689a0d3acb1487b80e11b38d4",
+ "git_dirty_kfb_igc": false,
+ "ffmpeg": "ffmpeg version 6.1.1-3ubuntu5 Copyright (c) 2000-2023 the FFmpeg developers"
+}
